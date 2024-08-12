@@ -1,86 +1,61 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const { IncomingForm } = require('formidable');
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3001;
 
-const server = http.createServer((req, res) => {
-    if (req.url === '/fileupload') {
-        const form = new IncomingForm();
-        form.uploadDir = path.join(__dirname, 'uploads');
-        form.keepExtensions = true; // 保留文件扩展名
+app.get("/", (req, res) => res.type('html').send(html));
 
-        // 确保上传目录存在
-        if (!fs.existsSync(form.uploadDir)) {
-            fs.mkdirSync(form.uploadDir);
-        }
+const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
-        form.parse(req, (err, fields, files) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Error uploading file: ' + err.message }));
-                return;
-            }
+server.keepAliveTimeout = 120 * 1000;
+server.headersTimeout = 120 * 1000;
 
-            const uploadedFile = files.filetoupload[0];
-            if (uploadedFile.mimetype !== 'application/pdf') {
-                res.writeHead(400, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Only PDF files are allowed.' }));
-                return;
-            }
-
-            const oldPath = uploadedFile.filepath;
-            const newPath = path.join(form.uploadDir, uploadedFile.originalFilename);
-
-            fs.rename(oldPath, newPath, (err) => {
-                if (err) {
-                    res.writeHead(500, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Failed to save file' }));
-                    return;
-                }
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true }));
-            });
+const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello from Render!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          disableForReducedMotion: true
         });
-    } else if (req.url === '/filelist') {
-        fs.readdir('.', (err, files) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Failed to list files' }));
-                return;
-            }
-
-            // 仅列出 PDF 文件
-            const pdfFiles = files.filter(file => file.endsWith('.pdf'));
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ files: pdfFiles }));
-        });
-    } else if (req.url.startsWith('/deletefile')) {
-        const fileName = new URL(req.url, `http://${req.headers.host}`).searchParams.get('name');
-        const filePath = path.join('.', fileName);
-
-        fs.unlink(filePath, (err) => {
-            if (err) {
-                res.writeHead(404, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'File not found' }));
-                return;
-            }
-
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true }));
-        });
-    } else {
-        fs.readFile('data.html', (err, data) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'text/html' });
-                res.end('Error loading page');
-                return;
-            }
-            res.writeHead(200, { 'Content-Type': 'text/html' });
-            res.end(data);
-        });
-    }
-});
-
-server.listen(3001, () => {
-    console.log('Server started on http://localhost:3001/');
-});
+      }, 500);
+    </script>
+    <style>
+      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
+      @font-face {
+        font-family: "neo-sans";
+        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+        font-style: normal;
+        font-weight: 700;
+      }
+      html {
+        font-family: neo-sans;
+        font-weight: 700;
+        font-size: calc(62rem / 16);
+      }
+      body {
+        background: white;
+      }
+      section {
+        border-radius: 1em;
+        padding: 1em;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      Hello from Render!
+    </section>
+  </body>
+</html>
+`
