@@ -82,25 +82,11 @@
         #uploaded-files li {
             padding: 5px;
             border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #uploaded-files button {
-            background-color: #e53935;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        #uploaded-files button:hover {
-            background-color: #b71c1c;
         }
     </style>
 </head>
 <body>
-    <form id="upload-form" action="fileupload" method="post" enctype="multipart/form-data">
+    <form id="upload-form" action="/fileupload" method="post" enctype="multipart/form-data">
         <table border="1">
             <tr><td><h1>上傳PDF檔案</h1></td></tr>
             <tr><td><input type="file" name="filetoupload" accept=".pdf" required></td></tr>
@@ -127,9 +113,9 @@
             const fileName = fileInput.files[0] ? fileInput.files[0].name : '未選擇檔案';
 
             // 顯示文件名稱
-            document.getElementById('file-name').textContent = `上傳的檔案名稱: ${fileName}`;
+            document.getElementById('file-name').textContent = 上傳的檔案名稱: ${fileName};
 
-            fetch('fileupload', {
+            fetch('/fileupload', {
                 method: 'POST',
                 body: formData
             })
@@ -159,13 +145,6 @@
                         data.files.forEach(fileName => {
                             const li = document.createElement('li');
                             li.textContent = fileName;
-
-                            // Create and add delete button
-                            const deleteButton = document.createElement('button');
-                            deleteButton.textContent = '刪除';
-                            deleteButton.onclick = () => deleteFile(fileName);
-
-                            li.appendChild(deleteButton);
                             fileList.appendChild(li);
                         });
                     } else {
@@ -175,25 +154,6 @@
                 .catch(error => {
                     console.error('Fetch error:', error);
                 });
-        }
-
-        function deleteFile(fileName) {
-            fetch(`/deletefile?name=${encodeURIComponent(fileName)}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // 刪除成功後更新文件列表
-                    updateFileList();
-                } else {
-                    alert('刪除失敗: ' + (data.error || '未知錯誤'));
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-                alert('刪除失敗，請稍後再試。');
-            });
         }
 
         // 初始加載文件列表
